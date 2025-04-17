@@ -24,13 +24,13 @@ public class Main {
                 .login()
                 .block();
 
-        // ✅ Message de test dans le salon Discord
+        // ✅ Message de démarrage
         client.getChannelById(Snowflake.of(CHANNEL_ID))
                 .ofType(MessageChannel.class)
-                .subscribe(channel -> channel.createMessage("✅ Le bot est bien connecté à Discord !").subscribe());
+                .subscribe(channel -> channel.createMessage("✅ Le bot est bien en ligne et connecté à Discord !").subscribe());
 
-        // 👇 Produit Amazon réel à prix bas (~40€), ancien prix simulé = 130€
-        trackedProducts.put("https://www.amazon.fr/dp/B08CFSZLQ4", 130.00);
+        // ✅ Produit de test (ancien prix fictif élevé pour forcer l'alerte)
+        trackedProducts.put("https://www.amazon.fr/dp/B07Y45YTFL", 130.00);
 
         Timer timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
@@ -40,9 +40,10 @@ public class Main {
                     double oldPrice = entry.getValue();
 
                     try {
+                        // ✅ User-Agent crédible pour éviter les blocages Amazon
                         Document doc = Jsoup.connect(url)
-                                .userAgent("Mozilla/5.0")
-                                .timeout(6000)
+                                .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
+                                .timeout(10000)
                                 .get();
 
                         Element priceElement = doc.selectFirst("#priceblock_ourprice, #priceblock_dealprice, span.a-offscreen");
@@ -75,10 +76,10 @@ public class Main {
 
                             trackedProducts.put(url, newPrice);
                         } else {
-                            System.out.println("Prix non trouvé : " + url);
+                            System.out.println("❌ Prix non trouvé : " + url);
                         }
                     } catch (Exception e) {
-                        System.out.println("Erreur sur " + url + " : " + e.getMessage());
+                        System.out.println("⚠️ Erreur sur " + url + " : " + e.getMessage());
                     }
                 }
             }
