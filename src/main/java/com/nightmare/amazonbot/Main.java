@@ -1,14 +1,3 @@
-Main`
-
-✅ Coche la case **`public static void main(String[] args)`** avant de cliquer sur Finish
-
----
-
-### 3. Colle le code de test dedans
-
-Remplace tout le contenu par **ce code complet** (version test) :
-
-```java
 package com.nightmare.amazonbot;
 
 import discord4j.core.DiscordClientBuilder;
@@ -20,15 +9,12 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class Main {
 
     private static final String DISCORD_TOKEN = System.getenv("DISCORD_TOKEN");
-    private static final String CHANNEL_ID = System.getenv("DISCORD_CHANNEL_ID");
+    private static final String CHANNEL_ID = System.getenv("DISCORD_CHANNEL_ID"); // ← CETTE LIGNE EST ESSENTIELLE
 
     private static final Map<String, Double> trackedProducts = new HashMap<>();
 
