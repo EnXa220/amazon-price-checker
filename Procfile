@@ -1,0 +1,1 @@
+command: mvn compile exec:java -Dexec.mainClass="com.nightmare.amazonbot.Main"
