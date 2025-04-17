@@ -16,6 +16,9 @@ public class Main {
     private static final String DISCORD_TOKEN = System.getenv("DISCORD_TOKEN");
     private static final String CHANNEL_ID = System.getenv("DISCORD_CHANNEL_ID");
 
+    // ⚠️ Mets ta clé ScraperAPI ici
+    private static final String SCRAPER_API_KEY = System.getenv("SCRAPERAPI_KEY");
+
     private static final Map<String, Double> trackedProducts = new HashMap<>();
 
     public static void main(String[] args) {
@@ -24,32 +27,29 @@ public class Main {
                 .login()
                 .block();
 
-        // ✅ Message de démarrage dans Discord
+        // ✅ Message de démarrage
         client.getChannelById(Snowflake.of(CHANNEL_ID))
                 .ofType(MessageChannel.class)
-                .subscribe(channel -> channel.createMessage("✅ Le bot Amazon est en ligne !").subscribe());
+                .subscribe(channel -> channel.createMessage("✅ Le bot est en ligne via ScraperAPI !").subscribe());
 
-        // 🔍 Produit Amazon à surveiller (ancien prix fictif)
+        // 📦 Produit Amazon avec prix fictif
         trackedProducts.put("https://www.amazon.fr/dp/B07Y45YTFL", 130.00);
 
         Timer timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
             public void run() {
                 for (Map.Entry<String, Double> entry : trackedProducts.entrySet()) {
-                    String url = entry.getKey();
+                    String productUrl = entry.getKey();
                     double oldPrice = entry.getValue();
 
+                    String scraperUrl = "http://api.scraperapi.com?api_key=" + SCRAPER_API_KEY + "&url=" + productUrl;
+
                     try {
-                        Document doc = Jsoup.connect(url)
-                                .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
+                        Document doc = Jsoup.connect(scraperUrl)
+                                .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
                                 .timeout(10000)
                                 .get();
 
-                        // 🧪 Affiche un bout du HTML récupéré pour analyse
-                        System.out.println("🧪 HTML récupéré (début) :");
-                        System.out.println(doc.html().substring(0, Math.min(1000, doc.html().length())));
-
-                        // 🔎 Essaye de localiser le prix dans les balises classiques
                         Element priceElement = doc.selectFirst("#priceblock_ourprice, #priceblock_dealprice, span.a-offscreen");
 
                         if (priceElement == null) {
@@ -65,27 +65,25 @@ public class Main {
                             String priceText = priceElement.text().replace("€", "").replace(",", ".").trim();
                             double newPrice = Double.parseDouble(priceText);
 
-                            System.out.println("💰 Prix détecté : " + newPrice + "€");
-
                             if (newPrice < oldPrice * 0.9) {
-                                String title = doc.title();
                                 String message = "🔥 **Baisse de prix détectée !**\n"
-                                        + "**" + title + "**\n"
+                                        + "**" + doc.title() + "**\n"
                                         + "Ancien prix : " + oldPrice + "€\n"
                                         + "Nouveau prix : " + newPrice + "€\n"
-                                        + url;
+                                        + productUrl;
 
                                 client.getChannelById(Snowflake.of(CHANNEL_ID))
                                         .ofType(MessageChannel.class)
                                         .subscribe(channel -> channel.createMessage(message).subscribe());
                             }
 
-                            trackedProducts.put(url, newPrice);
+                            trackedProducts.put(productUrl, newPrice);
                         } else {
-                            System.out.println("❌ Prix non trouvé : " + url);
+                            System.out.println("❌ Prix non trouvé : " + productUrl);
                         }
+
                     } catch (Exception e) {
-                        System.out.println("⚠️ Erreur sur " + url + " : " + e.getMessage());
+                        System.out.println("⚠️ Erreur : " + e.getMessage());
                     }
                 }
             }
