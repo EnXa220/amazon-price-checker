@@ -24,12 +24,12 @@ public class Main {
                 .login()
                 .block();
 
-        // ✅ Message de démarrage
+        // ✅ Message de démarrage dans Discord
         client.getChannelById(Snowflake.of(CHANNEL_ID))
                 .ofType(MessageChannel.class)
-                .subscribe(channel -> channel.createMessage("✅ Le bot est bien en ligne et connecté à Discord !").subscribe());
+                .subscribe(channel -> channel.createMessage("✅ Le bot Amazon est en ligne !").subscribe());
 
-        // ✅ Produit de test (ancien prix fictif élevé pour forcer l'alerte)
+        // 🔍 Produit Amazon à surveiller (ancien prix fictif)
         trackedProducts.put("https://www.amazon.fr/dp/B07Y45YTFL", 130.00);
 
         Timer timer = new Timer();
@@ -40,12 +40,16 @@ public class Main {
                     double oldPrice = entry.getValue();
 
                     try {
-                        // ✅ User-Agent crédible pour éviter les blocages Amazon
                         Document doc = Jsoup.connect(url)
                                 .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
                                 .timeout(10000)
                                 .get();
 
+                        // 🧪 Affiche un bout du HTML récupéré pour analyse
+                        System.out.println("🧪 HTML récupéré (début) :");
+                        System.out.println(doc.html().substring(0, Math.min(1000, doc.html().length())));
+
+                        // 🔎 Essaye de localiser le prix dans les balises classiques
                         Element priceElement = doc.selectFirst("#priceblock_ourprice, #priceblock_dealprice, span.a-offscreen");
 
                         if (priceElement == null) {
@@ -60,6 +64,8 @@ public class Main {
                         if (priceElement != null) {
                             String priceText = priceElement.text().replace("€", "").replace(",", ".").trim();
                             double newPrice = Double.parseDouble(priceText);
+
+                            System.out.println("💰 Prix détecté : " + newPrice + "€");
 
                             if (newPrice < oldPrice * 0.9) {
                                 String title = doc.title();
