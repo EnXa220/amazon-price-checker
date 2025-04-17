@@ -14,7 +14,7 @@ import java.util.*;
 public class Main {
 
     private static final String DISCORD_TOKEN = System.getenv("DISCORD_TOKEN");
-    private static final String CHANNEL_ID = System.getenv("DISCORD_CHANNEL_ID"); // ← CETTE LIGNE EST ESSENTIELLE
+    private static final String CHANNEL_ID = System.getenv("DISCORD_CHANNEL_ID");
 
     private static final Map<String, Double> trackedProducts = new HashMap<>();
 
@@ -24,7 +24,13 @@ public class Main {
                 .login()
                 .block();
 
-        trackedProducts.put("https://www.amazon.fr/dp/B07PZR3PVB", 130.00);
+        // ✅ Message de test dans le salon Discord
+        client.getChannelById(Snowflake.of(CHANNEL_ID))
+                .ofType(MessageChannel.class)
+                .subscribe(channel -> channel.createMessage("✅ Le bot est bien connecté à Discord !").subscribe());
+
+        // 👇 Produit Amazon réel à prix bas (~40€), ancien prix simulé = 130€
+        trackedProducts.put("https://www.amazon.fr/dp/B08CFSZLQ4", 130.00);
 
         Timer timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
